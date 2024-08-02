@@ -67,8 +67,7 @@ function M.DirManager:edit(sub_path, create_parent_dir)
     end
 
     local abs_path = self:get_abs_path(sub_path)
-    abs_path = abs_path:gsub('%%', '\\%%')  -- Escape '%', required to use `vim.cmd.edit`
-    vim.cmd({cmd = 'edit', args = {abs_path}})
+    vim.cmd.edit({args = {abs_path}, magic={file=false, bar=false}})
 end
 
 
