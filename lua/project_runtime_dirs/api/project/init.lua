@@ -205,12 +205,12 @@ end
 
 
 ---Return the names of all configured runtime directories. Also return the names of the runtime directories that are not loaded.
----This function only updates the runtime directories names when the API change or read the project root file. If you manually created some
----runtime directory, you need to restart Neovim in order to apply the changes.
+---The API only updates the runtime directories names when the API change or read the project root file. If you manually add a runtime
+---directory, you need to restart Neovim in order to apply the changes.
 ---@return string[]
 ---@nodiscard
 function M.get_all_confiigured_rtd_names()
-    return Cache.project.configured_rtd_names
+    return Cache.project.configured_rtd_names or {}
 end
 
 
