@@ -159,8 +159,7 @@ If you enabled the user commands in your configurations (default behavior), thes
 
 * 'ProjectRtdRemoveRtd': Remove some runtime directories from the current project.
 
-* 'ProjectRtdEditRtd': Edit a file or folder in a runtime directory. The runtime directory is identified by its name. Usage: `RtdEdit <rtd-name>
-  <file-path>`.
+* 'ProjectRtdEditRtd': Edit a file or folder in a runtime directory. Usage: `ProjectRtdEditRtd <rtd-name> <file-path>`.
 
 * "ProjectRtdShowContext": Show the plugin context: merged configuration, current project directory, runtime directory data.
 

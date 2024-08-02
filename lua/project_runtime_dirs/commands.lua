@@ -80,7 +80,7 @@ vim.api.nvim_create_user_command('ProjectRtdEditRtd', function(arguments)
         rtd:edit(arguments.fargs[2] or '.', true)
     end
 end, {
-    desc = 'Edit a file or folder in a runtime directory. The `Rtd` is identified by its name. Usage: `RtdEdit <rtd-name> <file-path>`',
+    desc = 'Edit a file or folder in a runtime directory. Usage: `ProjectRtdEditRtd <rtd-name> <file-path>`',
     nargs = '+',
 
     ---Completion function
