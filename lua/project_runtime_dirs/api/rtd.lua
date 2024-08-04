@@ -99,7 +99,7 @@ function M.RuntimeDir:new(name)
     end
 
     -- File with the names of the inherited runtime directories
-    local sub_rtds_file = new:open(Config.merged.project_root_file)
+    local sub_rtds_file = new:open('runtime-dir-deps')
     if sub_rtds_file then
         for line in sub_rtds_file:lines() do
             ---@cast line string
