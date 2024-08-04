@@ -7,6 +7,7 @@ local Text = require('project_runtime_dirs.text')
 
 ---API to manage the current project of the `project_runtime_dirs.nvim` plugin and its runtime directories
 ---@class (exact) ProjectRtdApiProject
+---@field get_project_directory fun(): string?
 ---@field read_project_file fun(): string[]?
 ---@field write_project_file fun(runtime_dirs: string[])
 ---@field add_rtd fun(name: string)
@@ -18,6 +19,13 @@ local M = {}
 
 
 -- #region Project root file
+
+---Get the path to the current project directory
+---@return string?
+function M.get_project_directory()
+    return Config.done.current_project_directory
+end
+
 
 ---Set a directory as a project root directory
 ---Does not changes the current project, its configuration and loaded runtime directories. You need to restart Neovim in order top apply the
