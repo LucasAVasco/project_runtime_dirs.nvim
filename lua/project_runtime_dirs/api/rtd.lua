@@ -1,18 +1,16 @@
-local Config = require('project_runtime_dirs.config')
-local Text = require('project_runtime_dirs.text')
-local Cache = require('project_runtime_dirs.cache')
-local Check = require('project_runtime_dirs.check')
+local Config = require("project_runtime_dirs.config")
+local Text = require("project_runtime_dirs.text")
+local Cache = require("project_runtime_dirs.cache")
+local Check = require("project_runtime_dirs.check")
 
 -- API
 
-local ApiFolder = require('project_runtime_dirs.api.folder')
-
+local ApiFolder = require("project_runtime_dirs.api.folder")
 
 ---API to manage runtime directories of the `project_runtime_dirs.nvim` plugin
 ---@class (exact) ProjectRtdApiRtd
 ---@field RuntimeDir RuntimeDir
 local M = {}
-
 
 -- #region Runtime directory class
 
@@ -28,7 +26,6 @@ local M = {}
 M.RuntimeDir = {}
 M.RuntimeDir.__index = M.RuntimeDir
 setmetatable(M.RuntimeDir, ApiFolder.DirManager)
-
 
 ---Create a runtime directory object.
 ---You need to provide the name of the runtime directory. This function will search it in the configured source directories and
@@ -54,7 +51,10 @@ function M.RuntimeDir:new(name)
 
     -- Max number of runtime directories
     if Cache.rtd_is_full() then
-        vim.notify(('Max number of runtime directories. Cache is full!. Max: %d'):format(Cache.rtd_max), vim.log.levels.ERROR)
+        vim.notify(
+            ("Max number of runtime directories. Cache is full!. Max: %d"):format(Cache.rtd_max),
+            vim.log.levels.ERROR
+        )
         return
     end
 
@@ -94,18 +94,18 @@ function M.RuntimeDir:new(name)
 
     -- Enables the runtime directory
     vim.opt.rtp:append(new.path)
-    if new:filereadable('init.lua') then
-        dofile(new:get_abs_path('init.lua'))
+    if new:filereadable("init.lua") then
+        dofile(new:get_abs_path("init.lua"))
     end
 
     -- File with the names of the inherited runtime directories
-    local sub_rtds_file = new:open('runtime-dir-deps')
+    local sub_rtds_file = new:open("runtime-dir-deps")
     if sub_rtds_file then
         for line in sub_rtds_file:lines() do
             ---@cast line string
             line = Text.remove_newlines(line)
 
-            if line ~= '' then
+            if line ~= "" then
                 table.insert(new.deps.names, line)
                 table.insert(new.deps.rtds, M.RuntimeDir:new(line))
             end
@@ -117,6 +117,5 @@ function M.RuntimeDir:new(name)
 end
 
 -- #endregion
-
 
 return M

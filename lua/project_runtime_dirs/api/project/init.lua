@@ -1,7 +1,7 @@
-local Config = require('project_runtime_dirs.config')
-local Cache = require('project_runtime_dirs.cache')
-local Check = require('project_runtime_dirs.check')
-local Text = require('project_runtime_dirs.text')
+local Config = require("project_runtime_dirs.config")
+local Cache = require("project_runtime_dirs.cache")
+local Check = require("project_runtime_dirs.check")
+local Text = require("project_runtime_dirs.text")
 
 -- API
 
@@ -17,7 +17,6 @@ local Text = require('project_runtime_dirs.text')
 ---@field get_all_confiigured_rtd_names fun(): string[]
 local M = {}
 
-
 -- #region Project root file
 
 ---Get the path to the current project directory
@@ -26,31 +25,29 @@ function M.get_project_directory()
     return Config.done.current_project_directory
 end
 
-
 ---Set a directory as a project root directory
 ---Does not changes the current project, its configuration and loaded runtime directories. You need to restart Neovim in order top apply the
 ---changes.
 ---@param directory? string Directory to be set as a project. If not provided, use the current working directory
 function M.set_dir_as_project(directory)
-    directory = directory or Config.merged.cwd or ''
+    directory = directory or Config.merged.cwd or ""
     directory = Text.add_trailing_slash(directory)
 
     -- Touch the file
-    local file_handler = io.open(directory .. Config.merged.project_root_file, 'a+')
+    local file_handler = io.open(directory .. Config.merged.project_root_file, "a+")
 
     if file_handler then
-        file_handler:write('')
+        file_handler:write("")
         file_handler:close()
     end
 end
-
 
 ---read the project file and returns the names of its runtime directories
 ---@return string[]?
 ---@nodiscard
 function M.read_project_file()
     -- checks the file size
-    local file_handler = io.open(Config.done.project_root_file_abs, 'r')
+    local file_handler = io.open(Config.done.project_root_file_abs, "r")
 
     if not file_handler then
         return
@@ -63,7 +60,10 @@ function M.read_project_file()
     --- The `extra_content` variable only have a value (different form `nil`) if the `content` variable can not hold all the file content
     --- because the file is too long. This is an error, and this function will abort the operation
     if extra_content ~= nil then
-        vim.notify(('Error parsing the file "%s". File is too long.'):format(Config.done.project_root_file_abs), vim.log.levels.ERROR)
+        vim.notify(
+            ('Error parsing the file "%s". File is too long.'):format(Config.done.project_root_file_abs),
+            vim.log.levels.ERROR
+        )
 
         return
     end
@@ -74,7 +74,7 @@ function M.read_project_file()
     local res = {}
 
     if content then
-        for line in content:gmatch('[^\n]+') do
+        for line in content:gmatch("[^\n]+") do
             ---@cast line string
 
             line = Text.remove_newlines(line)
@@ -93,20 +93,19 @@ function M.read_project_file()
     return res
 end
 
-
 ---Write the runtime directories to the project file
 ---This function overrides the project file
 ---@param runtime_dirs string[] Override the file with these runtime directories
 function M.write_project_file(runtime_dirs)
-    local file_handler = io.open(Config.done.project_root_file_abs, 'w')
+    local file_handler = io.open(Config.done.project_root_file_abs, "w")
 
     if file_handler then
-        for i = 1,#runtime_dirs do
+        for i = 1, #runtime_dirs do
             file_handler:write(runtime_dirs[i])
 
             -- Does not adds a new lien to the last line
             if i ~= #runtime_dirs then
-                file_handler:write('\n')
+                file_handler:write("\n")
             end
         end
 
@@ -116,7 +115,6 @@ function M.write_project_file(runtime_dirs)
         Cache.project.configured_rtd_names = runtime_dirs
     end
 end
-
 
 ---Add runtime directories to the current project.
 ---This function does not apply these runtime directories. You need to restart Neovim in order to apply the changes.
@@ -143,7 +141,6 @@ function M.add_rtd(names)
     -- Add the runtime directives to the configuration file
     M.write_project_file(enabled_rtds)
 end
-
 
 ---Remove some runtime directory from the current project
 ---This function does not disable the runtime directories. You need to restart Neovim in order to apply the changes.
@@ -176,7 +173,6 @@ end
 
 -- #endregion
 
-
 ---Return the names of all runtime directories. Also return the names of the runtime directories that are not loaded.
 ---This function only updates the runtime directories names once in a Neovim session. If you manually created some runtime directory, you
 ---need to restart Neovim in order to apply the changes.
@@ -192,7 +188,7 @@ function M.get_all_rtd_names()
     local names = {}
 
     for _, path in pairs(Config.merged.sources) do
-        local ApiSource = require('project_runtime_dirs.api.source')
+        local ApiSource = require("project_runtime_dirs.api.source")
         local source = ApiSource.RuntimeSource:new(path)
 
         -- A runtime source create from a runtime source path will always exist (will never be `nil`). The following condition is to remove
@@ -210,7 +206,6 @@ function M.get_all_rtd_names()
     return names
 end
 
-
 ---Return the names of all configured runtime directories. Also return the names of the runtime directories that are not loaded.
 ---The API only updates the runtime directories names when the API change or read the project root file. If you manually add a runtime
 ---directory, you need to restart Neovim in order to apply the changes.
@@ -219,6 +214,5 @@ end
 function M.get_all_confiigured_rtd_names()
     return Cache.project.configured_rtd_names or {}
 end
-
 
 return M

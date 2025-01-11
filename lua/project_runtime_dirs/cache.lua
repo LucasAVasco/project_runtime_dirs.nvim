@@ -3,7 +3,6 @@
 ---@field enabled_rtd_names string[] Names of all enabled runtime directories
 ---@field configured_rtd_names? string[] Names of all runtime directories configured to the current project
 
-
 ---Module to manage  the cached variables of the `project_runtime_dirs.nvim` plugin
 ---@class (exact) ProjectRtdCache
 ---@field rtd RuntimeDir[] Cache of created runtime directories
@@ -21,12 +20,10 @@ local M = {
     },
 }
 
-
 ---Return `true` if the cache is full (you can not add more runtime directories)
 ---@return boolean
 function M.rtd_is_full()
     return #M.rtd >= M.rtd_max
 end
-
 
 return M

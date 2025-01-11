@@ -5,7 +5,6 @@
 ---@field done ProjectRtdConfigCfgDone
 local M = {}
 
-
 ---Configuration that can be overridden by the user options
 ---@class (exact) ProjectRtdOptions
 ---@field cwd? string Override the current working directory
@@ -19,20 +18,20 @@ M.default = {
     cwd = vim.fn.getcwd(),
 
     sources = {
-        vim.fn.stdpath('data') .. '/runtime_dirs/',
-        vim.fn.stdpath('config') .. '/runtime_dirs/',  -- Runtime directories that you may want to track with your configuration files
+        vim.fn.stdpath("data") .. "/runtime_dirs/",
+        vim.fn.stdpath("config") .. "/runtime_dirs/", -- Runtime directories that you may want to track with your configuration files
     },
 
-    project_root_file = '.nvim-project-runtime',
+    project_root_file = ".nvim-project-runtime",
 
     folder_is_project = function(folder, config)
-        local file = folder .. '/' .. config.project_root_file
+        local file = folder .. "/" .. config.project_root_file
 
         return (vim.fn.isdirectory(file) + vim.fn.filereadable(file)) > 0
     end,
 
     get_project_dir = function(config)
-        local cwd = config.cwd or ''  -- The empty string is to disable the type checking error
+        local cwd = config.cwd or "" -- The empty string is to disable the type checking error
 
         -- Checks in the current directory
         if config.folder_is_project(cwd, config) then
@@ -40,7 +39,7 @@ M.default = {
         end
 
         -- Checks in the parent directories
-        for dir in vim.fs.parents(cwd or '') do
+        for dir in vim.fs.parents(cwd or "") do
             if config.folder_is_project(dir, config) then
                 return dir
             end
@@ -50,19 +49,17 @@ M.default = {
     load_user_commands = true,
 
     ui = {
-        relative = 'editor',
-        style = 'minimal',
-        border = 'rounded',
-    }
+        relative = "editor",
+        style = "minimal",
+        border = "rounded",
+    },
 }
-
 
 ---Merge of the default configuration and the user provided options. The user options have high priority.
 ---Can not be used before the plugin initialization.
 ---@type ProjectRtdOptions
 ---@diagnostic disable-next-line: missing-fields The fields will be fulfilled in the setup function
 M.merged = {}
-
 
 ---Configuration defined after the plugin initialization. Can not be used before it.
 ---@class (exact) ProjectRtdConfigCfgDone
@@ -71,6 +68,5 @@ M.merged = {}
 ---@field project_root_file_abs? string Absolute path to the file holding the runtime directories of the current project
 ---@diagnostic disable-next-line: missing-fields The fields will be fulfilled in the setup function
 M.done = {}
-
 
 return M

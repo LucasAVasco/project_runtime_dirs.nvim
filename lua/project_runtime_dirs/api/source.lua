@@ -1,12 +1,11 @@
-local Config = require('project_runtime_dirs.config')
-local Cache = require('project_runtime_dirs.cache')
-local Text = require('project_runtime_dirs.text')
-local Check = require('project_runtime_dirs.check')
+local Config = require("project_runtime_dirs.config")
+local Cache = require("project_runtime_dirs.cache")
+local Text = require("project_runtime_dirs.text")
+local Check = require("project_runtime_dirs.check")
 
 -- API
 
-local ApiFolder = require('project_runtime_dirs.api.folder')
-
+local ApiFolder = require("project_runtime_dirs.api.folder")
 
 ---API to manage runtime sources of the `project_runtime_dirs.nvim` plugin
 ---@class (exact) ProjectRtdApiSource
@@ -18,14 +17,12 @@ local ApiFolder = require('project_runtime_dirs.api.folder')
 ---@field select_source_by_path fun(callback: fun(RuntimeSource?))
 local M = {}
 
-
 ---Return the list of runtime source directories
 ---@return string[]
 ---@nodiscard
 function M.get_list_paths()
     return Config.merged.sources
 end
-
 
 ---Return `true` if the runtime source exists. Otherwise, return `false`
 ---@param path string Absolute path of the runtime source
@@ -41,7 +38,6 @@ function M.path_exists(path)
     return false
 end
 
-
 -- #region Runtime source class
 
 ---Class to manage a runtime source
@@ -51,15 +47,13 @@ M.RuntimeSource = {}
 M.RuntimeSource.__index = M.RuntimeSource
 setmetatable(M.RuntimeSource, ApiFolder.DirManager)
 
-
 ---Return a list of all the runtime directories of the runtime source
 ---@param ignore_errors? boolean Does not notify if can not access the runtime source
 ---@return string[]
 ---@nodiscard
 function M.RuntimeSource:get_rtds(ignore_errors)
-    return self:list_files('.', ignore_errors) or {}
+    return self:list_files(".", ignore_errors) or {}
 end
-
 
 ---Checks if the runtime source has the runtime directory
 ---@param name string Name of the runtime directory
@@ -69,24 +63,22 @@ function M.RuntimeSource:has_runtime_dir(name)
     return self:isdirectory(name)
 end
 
-
 ---Create a runtime directory
 ---@param name string Name of the runtime directory
 ---@param ignore_errors? boolean Does not notify if can not create the runtime directory
 function M.RuntimeSource:create_runtime_dir(name, ignore_errors)
     if self:has_runtime_dir(name) then
         if not ignore_errors then
-            vim.notify('Error creating the runtime directory. It already exists', vim.log.levels.ERROR)
+            vim.notify("Error creating the runtime directory. It already exists", vim.log.levels.ERROR)
         end
 
         return
     end
 
     if Check.rtd_name_is_valid(name, not ignore_errors) then
-        self:mkdir(self.path .. name, 'p')
+        self:mkdir(self.path .. name, "p")
     end
 end
-
 
 ---Create a runtime source object by its path
 ---You need to provide the path of the runtime source directory. This function will check if this path is available in the user
@@ -96,7 +88,7 @@ end
 ---@nodiscard
 function M.RuntimeSource:new(path)
     -- Convert index to path
-    if type(path) == 'number' then
+    if type(path) == "number" then
         path = Config.merged.sources[path]
     end
 
@@ -109,7 +101,7 @@ function M.RuntimeSource:new(path)
 
     -- Checks if the runtime source exists
     if not M.path_exists(path) then
-        vim.notify(('The provided runtime source does not exist. Path: %s'):format(path), vim.log.levels.ERROR)
+        vim.notify(("The provided runtime source does not exist. Path: %s"):format(path), vim.log.levels.ERROR)
         return
     end
 
@@ -129,13 +121,12 @@ end
 
 -- #endregion
 
-
 ---Interactively select a runtime source
 ---Calls the callback function after the user select the runtime source
 ---@param callback fun(rts?: RuntimeSource) Function called after the user select the runtime source. Receives the selected one
 function M.select_source_by_path(callback)
     vim.ui.select(Config.merged.sources, {
-        prompt = 'Name of the Project',
+        prompt = "Name of the Project",
     }, function(selected_path, _)
         local rts = nil
 
@@ -146,6 +137,5 @@ function M.select_source_by_path(callback)
         callback(rts)
     end)
 end
-
 
 return M
