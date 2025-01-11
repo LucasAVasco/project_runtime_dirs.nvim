@@ -74,18 +74,17 @@ function M.read_project_file()
     local res = {}
 
     if content then
-        for line in content:gmatch('[^\n]*') do
+        for line in content:gmatch('[^\n]+') do
             ---@cast line string
 
             line = Text.remove_newlines(line)
 
-            if line == '' then  -- Does not add empty lines
+            -- Ensures the name is valid
+            if not Check.rtd_name_is_valid(line, true) then
                 break
             end
 
-            if Check.rtd_name_is_valid(line) then
-                table.insert(res, line)
-            end
+            table.insert(res, line)
         end
     end
 

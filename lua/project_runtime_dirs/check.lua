@@ -20,8 +20,22 @@ end
 ---@param notify? boolean Show a notification if the name is not valid
 ---@return boolean name_is_valid
 function M.rtd_name_is_valid(name, notify)
+    -- Checks if name is empty
+    local is_valid = name ~= ''
+
+    if not is_valid then
+        if notify then
+            vim.notify(
+                ('Error parsing project name: "%s". Name is empty'):format(name),
+                vim.log.levels.ERROR
+            )
+        end
+
+        return false
+    end
+
     -- Checks the size of the name
-    local is_valid = #name < rtd_name_max_size
+    is_valid = #name < rtd_name_max_size
 
     if not is_valid then
         if notify then
