@@ -29,7 +29,7 @@ function M.setup(opts)
         done.current_project_directory = project_dir
         done.project_root_file_abs = project_dir .. merged.project_root_file
 
-        for _, rtd_name in pairs(ApiProject.read_project_file() or {}) do
+        for _, rtd_name in pairs(ApiProject.read_project_file() and Cache.project.configured_rtd_names or {}) do
             local _ = ApiRtd.RuntimeDir:new(rtd_name) -- The Rtd is automatically added to the cache, so discards the returned value
         end
     end

@@ -1,7 +1,10 @@
+---@module "project_runtime_dirs.types.rtd"
+
 ---Module to check the validity of the data used in the `project_runtime_dris.nvim` plugin
 ---@class (exact) ProjectRtdCheck
 ---@field get_rtd_name_max_size fun(): integer
 ---@field rtd_name_is_valid fun(name: string, notify?: boolean): boolean
+---@field project_file_is_valid fun(file_content_json: ProjectRtdTypesProjectFile, notify?: boolean): boolean
 local M = {}
 
 local rtd_name_max_size = 500 -- Max size of each runtime directory name
@@ -61,6 +64,46 @@ function M.rtd_name_is_valid(name, notify)
 
     -- Fallback response
     return true
+end
+
+---Show a notification about an error parsing the project file.
+---@param message string specific parsing error.
+---@param notify boolean shows the notification.
+local function notify_error_parsing_project_file(message, notify)
+    if notify then
+        vim.notify("Error parsiong configuration file: '" .. message .. "'")
+    end
+end
+
+---Check if the content of a project file is valid.
+---@param file_content_json ProjectRtdTypesProjectFile JSON with the contents of the project file.
+---@param notify boolean throw a notification if the content is invalid.
+---@return boolean is_valid if the project file is valid.
+function M.project_file_is_valid(file_content_json, notify)
+    local is_valid = true
+    if file_content_json.runtime_dirs then
+        if type(file_content_json.runtime_dirs) ~= "table" then
+            notify_error_parsing_project_file(
+                "the argument `runtime_dirs` must be a list of runtime directories names `string[]`.",
+                notify
+            )
+            is_valid = false
+        else
+            -- Checks each runtime directory
+            for _, rtd in ipairs(file_content_json.runtime_dirs) do
+                if not M.rtd_name_is_valid(rtd) then
+                    notify_error_parsing_project_file(
+                        'The provided runtime directory name is invalid: "' .. rtd .. '"',
+                        notify
+                    )
+                    is_valid = false
+                end
+            end
+        end
+    end
+
+    -- Fallback return
+    return is_valid
 end
 
 return M

@@ -22,7 +22,7 @@ M.default = {
         vim.fn.stdpath("config") .. "/runtime_dirs/", -- Runtime directories that you may want to track with your configuration files
     },
 
-    project_root_file = ".nvim-project-runtime",
+    project_root_file = ".nvim-project-runtime.json",
 
     folder_is_project = function(folder, config)
         local file = folder .. "/" .. config.project_root_file

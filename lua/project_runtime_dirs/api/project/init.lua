@@ -1,3 +1,5 @@
+---@module "project_runtime_dirs.types.rtd"
+
 local Config = require("project_runtime_dirs.config")
 local Cache = require("project_runtime_dirs.cache")
 local Check = require("project_runtime_dirs.check")
@@ -8,8 +10,8 @@ local Text = require("project_runtime_dirs.text")
 ---API to manage the current project of the `project_runtime_dirs.nvim` plugin and its runtime directories
 ---@class (exact) ProjectRtdApiProject
 ---@field get_project_directory fun(): string?
----@field read_project_file fun(): string[]?
----@field write_project_file fun(runtime_dirs: string[])
+---@field read_project_file fun(): ProjectRtdTypesProjectFile?
+---@field write_project_file fun(project_file_json: ProjectRtdTypesProjectFile)
 ---@field add_rtd fun(name: string)
 ---@field remove_rtd fun(name: string)
 ---@field set_dir_as_project fun(directory: string)
@@ -32,101 +34,83 @@ end
 function M.set_dir_as_project(directory)
     directory = directory or Config.merged.cwd or ""
     directory = Text.add_trailing_slash(directory)
+    local file_path = directory .. Config.merged.project_root_file
 
-    -- Touch the file
-    local file_handler = io.open(directory .. Config.merged.project_root_file, "a+")
+    -- Does not create the project file if it already exists
+
+    local file_handler = io.open(file_path, "r")
 
     if file_handler then
-        file_handler:write("")
+        return
+    end
+
+    -- Touches the file
+
+    file_handler = io.open(file_path, "a+")
+
+    if file_handler then
+        file_handler:write("{}")
         file_handler:close()
     end
 end
 
 ---read the project file and returns the names of its runtime directories
----@return string[]?
+---@return ProjectRtdTypesProjectFile?
 ---@nodiscard
 function M.read_project_file()
-    -- checks the file size
     local file_handler = io.open(Config.done.project_root_file_abs, "r")
 
     if not file_handler then
         return
     end
 
-    ---@type string
-    local content, extra_content = file_handler:read(100000, 1)
-    file_handler:close()
-
-    --- The `extra_content` variable only have a value (different form `nil`) if the `content` variable can not hold all the file content
-    --- because the file is too long. This is an error, and this function will abort the operation
-    if extra_content ~= nil then
-        vim.notify(
-            ('Error parsing the file "%s". File is too long.'):format(Config.done.project_root_file_abs),
-            vim.log.levels.ERROR
-        )
-
+    ---Project configuration file
+    local project_file_content = vim.secure.read(Config.done.project_root_file_abs)
+    if not project_file_content then
         return
     end
 
-    -- File is not too long. We can parse it
-
-    ---@type string[]
-    local res = {}
-
-    if content then
-        for line in content:gmatch("[^\n]+") do
-            ---@cast line string
-
-            line = Text.remove_newlines(line)
-
-            -- Ensures the name is valid
-            if not Check.rtd_name_is_valid(line, true) then
-                break
-            end
-
-            table.insert(res, line)
-        end
+    ---Project file converted to Lua Table
+    ---@type ProjectRtdTypesProjectFile
+    local project_file_json = vim.json.decode(project_file_content)
+    if not Check.project_file_is_valid(project_file_json, true) then
+        return
     end
 
     -- Updates the cache
-    Cache.project.configured_rtd_names = res
-    return res
+    Cache.project.configured_rtd_names = project_file_json.runtime_dirs or {}
+    return project_file_json
 end
 
 ---Write the runtime directories to the project file
 ---This function overrides the project file
----@param runtime_dirs string[] Override the file with these runtime directories
-function M.write_project_file(runtime_dirs)
+---@param project_file_json ProjectRtdTypesProjectFile Override the file with these runtime directories
+function M.write_project_file(project_file_json)
     local file_handler = io.open(Config.done.project_root_file_abs, "w")
-
-    if file_handler then
-        for i = 1, #runtime_dirs do
-            file_handler:write(runtime_dirs[i])
-
-            -- Does not adds a new lien to the last line
-            if i ~= #runtime_dirs then
-                file_handler:write("\n")
-            end
-        end
-
-        file_handler:close()
-
-        -- Updates the cache
-        Cache.project.configured_rtd_names = runtime_dirs
+    if not file_handler then
+        return
     end
+
+    local file_content = vim.json.encode(project_file_json)
+    file_handler:write(file_content)
+    file_handler:close()
+
+    -- Updates the cache
+    Cache.project.configured_rtd_names = project_file_json.runtime_dirs
 end
 
 ---Add runtime directories to the current project.
 ---This function does not apply these runtime directories. You need to restart Neovim in order to apply the changes.
 ---@param names string[] Name of the runtime directories to add to the current project
 function M.add_rtd(names)
-    local enabled_rtds = M.read_project_file() or {}
+    local project_file = M.read_project_file() or {}
+    project_file.runtime_dirs = project_file.runtime_dirs or {}
 
-    for _, wanted_rtd_name in pairs(names) do
+    for _, wanted_rtd_name in ipairs(names) do
         local add_wanted_rtd_name = true
 
         -- Does not add the runtime directory if is already is in the configuration file
-        for _, enabled_rtd_name in pairs(enabled_rtds) do
+        for _, enabled_rtd_name in pairs(project_file.runtime_dirs) do
             if enabled_rtd_name == wanted_rtd_name then
                 add_wanted_rtd_name = false
                 break
@@ -134,12 +118,12 @@ function M.add_rtd(names)
         end
 
         if add_wanted_rtd_name then
-            table.insert(enabled_rtds, wanted_rtd_name)
+            table.insert(project_file.runtime_dirs, wanted_rtd_name)
         end
     end
 
-    -- Add the runtime directives to the configuration file
-    M.write_project_file(enabled_rtds)
+    -- Add the runtime directories to the configuration file
+    M.write_project_file(project_file)
 end
 
 ---Remove some runtime directory from the current project
@@ -149,7 +133,7 @@ function M.remove_rtd(names)
     ---@type string[]
     local rtd_to_maintain = {}
 
-    local enabled_rtds = M.read_project_file() or {}
+    local enabled_rtds = M.read_project_file() and Cache.project.configured_rtd_names or {}
 
     for _, enabled_rtd_name in pairs(enabled_rtds) do
         local maintain_rtd = true
