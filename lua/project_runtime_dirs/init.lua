@@ -16,10 +16,16 @@ function M.setup(opts)
     local merged = vim.tbl_deep_extend("force", Config.default, opts)
     Config.merged = merged
 
+    -- Configuration file inside the project directory
+    done.project_config_file = merged.project_config_subdir .. "config.json"
+
     -- Ensures that all paths have a trailing slash
     for i = 1, #merged.sources do
         merged.sources[i] = Text.add_trailing_slash(merged.sources[i])
     end
+
+    merged.cwd = Text.add_trailing_slash(merged.cwd)
+    merged.project_config_subdir = Text.add_trailing_slash(merged.project_config_subdir)
 
     -- Project directory and runtime directories
     local project_dir = merged.get_project_dir(merged)
@@ -27,7 +33,8 @@ function M.setup(opts)
     if project_dir then
         project_dir = Text.add_trailing_slash(project_dir)
         done.current_project_directory = project_dir
-        done.project_root_file_abs = project_dir .. merged.project_root_file
+        done.current_project_configuration_directory = project_dir .. merged.project_config_subdir
+        done.project_config_file_abs = project_dir .. done.project_config_file
 
         for _, rtd_name in pairs(ApiProject.read_project_file() and Cache.project.configured_rtd_names or {}) do
             local _ = ApiRtd.RuntimeDir:new(rtd_name) -- The Rtd is automatically added to the cache, so discards the returned value

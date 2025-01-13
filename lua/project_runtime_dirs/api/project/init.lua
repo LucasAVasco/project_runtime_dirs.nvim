@@ -10,6 +10,7 @@ local Text = require("project_runtime_dirs.text")
 ---API to manage the current project of the `project_runtime_dirs.nvim` plugin and its runtime directories
 ---@class (exact) ProjectRtdApiProject
 ---@field get_project_directory fun(): string?
+---@field get_project_configuration_directory fun(): string?
 ---@field read_project_file fun(): ProjectRtdTypesProjectFile?
 ---@field write_project_file fun(project_file_json: ProjectRtdTypesProjectFile)
 ---@field add_rtd fun(name: string)
@@ -19,12 +20,18 @@ local Text = require("project_runtime_dirs.text")
 ---@field get_all_confiigured_rtd_names fun(): string[]
 local M = {}
 
--- #region Project root file
+-- #region Project root directory
 
 ---Get the path to the current project directory
 ---@return string?
 function M.get_project_directory()
     return Config.done.current_project_directory
+end
+
+---Get the path to the current project configuration directory
+---@return string?
+function M.get_project_configuration_directory()
+    return Config.done.current_project_configuration_directory
 end
 
 ---Set a directory as a project root directory
@@ -34,23 +41,29 @@ end
 function M.set_dir_as_project(directory)
     directory = directory or Config.merged.cwd or ""
     directory = Text.add_trailing_slash(directory)
-    local file_path = directory .. Config.merged.project_root_file
+    local config_dir_path = directory .. Config.merged.project_config_subdir
 
-    -- Does not create the project file if it already exists
+    -- Creates the directory if it does not exist
+    if vim.fn.isdirectory(config_dir_path) == 0 then
+        vim.fn.mkdir(config_dir_path, "p", 448) -- '448' is '0700'
+    end
 
-    local file_handler = io.open(file_path, "r")
+    -- Does not create the configuration file if it already exists
 
-    if file_handler then
+    local config_file_path = Config.done.project_config_file
+    local config_file_handler = io.open(config_file_path, "r")
+
+    if config_file_handler then
         return
     end
 
-    -- Touches the file
+    -- Creates a empty configuration file
 
-    file_handler = io.open(file_path, "a+")
+    config_file_handler = io.open(config_file_path, "a+")
 
-    if file_handler then
-        file_handler:write("{}")
-        file_handler:close()
+    if config_file_handler then
+        config_file_handler:write("{}")
+        config_file_handler:close()
     end
 end
 
@@ -58,14 +71,14 @@ end
 ---@return ProjectRtdTypesProjectFile?
 ---@nodiscard
 function M.read_project_file()
-    local file_handler = io.open(Config.done.project_root_file_abs, "r")
+    local file_handler = io.open(Config.done.project_config_file_abs, "r")
 
     if not file_handler then
         return
     end
 
     ---Project configuration file
-    local project_file_content = vim.secure.read(Config.done.project_root_file_abs)
+    local project_file_content = vim.secure.read(Config.done.project_config_file_abs)
     if not project_file_content then
         return
     end
@@ -86,7 +99,7 @@ end
 ---This function overrides the project file
 ---@param project_file_json ProjectRtdTypesProjectFile Override the file with these runtime directories
 function M.write_project_file(project_file_json)
-    local file_handler = io.open(Config.done.project_root_file_abs, "w")
+    local file_handler = io.open(Config.done.project_config_file_abs, "w")
     if not file_handler then
         return
     end
@@ -191,8 +204,8 @@ function M.get_all_rtd_names()
 end
 
 ---Return the names of all configured runtime directories. Also return the names of the runtime directories that are not loaded.
----The API only updates the runtime directories names when the API change or read the project root file. If you manually add a runtime
----directory, you need to restart Neovim in order to apply the changes.
+---The API only updates the runtime directories names when the API change or read the project configuration file. If you manually add a
+---runtime directory, you need to restart Neovim in order to apply the changes.
 ---@return string[]
 ---@nodiscard
 function M.get_all_confiigured_rtd_names()
