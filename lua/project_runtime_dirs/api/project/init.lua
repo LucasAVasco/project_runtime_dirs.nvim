@@ -4,6 +4,7 @@ local Config = require("project_runtime_dirs.config")
 local Cache = require("project_runtime_dirs.cache")
 local Check = require("project_runtime_dirs.check")
 local Text = require("project_runtime_dirs.text")
+local ApiRtd = require("project_runtime_dirs.api.rtd")
 
 -- API
 
@@ -16,6 +17,7 @@ local Text = require("project_runtime_dirs.text")
 ---@field add_rtd fun(name: string)
 ---@field remove_rtd fun(name: string)
 ---@field set_dir_as_project fun(directory: string)
+---@field set_current_project_dir fun(directory: string)
 ---@field get_all_rtd_names fun(): string[]
 ---@field get_all_confiigured_rtd_names fun(): string[]
 local M = {}
@@ -71,6 +73,27 @@ function M.set_dir_as_project(directory)
         config_file_handler:write("{}")
         config_file_handler:close()
     end
+end
+
+---Change the current project directory.
+---Runtime directories already enabled will not be disabled.
+---***NOTE***: can not load all project features. Some features must be enabled before Neovim start. These features can not be
+---loaded.
+---@param directory string Path of the project to load.
+function M.set_current_project_dir(directory)
+    directory = Text.add_trailing_slash(directory)
+
+    local done = Config.done
+    done.current_project_directory = directory
+    done.current_project_configuration_directory = directory .. Config.merged.project_config_subdir
+    done.project_config_file_abs = directory .. done.project_config_file
+
+    for _, rtd_name in pairs(M.read_project_file() and Cache.project.configured_rtd_names or {}) do
+        local _ = ApiRtd.RuntimeDir:new(rtd_name) -- The Rtd is automatically added to the cache, so discards the returned value
+    end
+
+    -- Update the runtime directories
+    done.rtds = Cache.rtd
 end
 
 ---read the project file and returns the names of its runtime directories

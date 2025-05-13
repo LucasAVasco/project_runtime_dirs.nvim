@@ -31,18 +31,10 @@ function M.setup(opts)
     local project_dir = merged.get_project_dir(merged)
 
     if project_dir then
-        project_dir = Text.add_trailing_slash(project_dir)
-        done.current_project_directory = project_dir
-        done.current_project_configuration_directory = project_dir .. merged.project_config_subdir
-        done.project_config_file_abs = project_dir .. done.project_config_file
-
-        for _, rtd_name in pairs(ApiProject.read_project_file() and Cache.project.configured_rtd_names or {}) do
-            local _ = ApiRtd.RuntimeDir:new(rtd_name) -- The Rtd is automatically added to the cache, so discards the returned value
-        end
+        ApiProject.set_current_project_dir(project_dir)
+    else
+        done.rtds = {}
     end
-
-    -- Update the runtime directories
-    done.rtds = Cache.rtd
 
     -- User commands
     if merged.load_user_commands then
