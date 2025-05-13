@@ -6,7 +6,12 @@ local Text = require("project_runtime_dirs.text")
 local ApiProject = require("project_runtime_dirs.api.project")
 
 vim.api.nvim_create_user_command("ProjectRtdSetRoot", function(arguments)
-    ApiProject.set_dir_as_project(arguments.fargs[1] or ".")
+    local project_dir = arguments.fargs[1] or "."
+    ApiProject.set_dir_as_project(project_dir)
+
+    if Config.done.current_project_directory == nil then
+        ApiProject.set_current_project_dir(project_dir)
+    end
 end, {
     desc = "Set a folder as a project root directory. If a folder is no provided, use the current working directory",
     nargs = "?",
