@@ -26,14 +26,14 @@ end
 ---Create a folder inside the directory
 ---@param sub_path string Path to the folder to create. Relative to the directory
 ---@param flags? string Same as the `flags` attribute of the `vim.fn.mkdir` function
----@param prot? number Permission mask. Same as the `prot` attribute of the `vim.fn.mkdir()` function. The default is '0700'
+---@param prot? string Permission mask. Same as the `prot` attribute of the `vim.fn.mkdir()` function. The default is '0700'
 function M.DirManager:mkdir(sub_path, flags, prot)
     local abs_path = self:get_abs_path(sub_path)
 
     if vim.fn.isdirectory(abs_path) == 0 then -- If the folder does not exist
         -- Create the folder. Use '0700' as the default permission. Only the user has access, can edit or search files in the directory.
         -- Useful in configuration files if other users are not allowed to access them
-        vim.fn.mkdir(abs_path, flags, prot or 448) -- '448' is '0700'
+        vim.fn.mkdir(abs_path, flags, prot or "0o700")
     end
 end
 

@@ -47,13 +47,13 @@ function M.set_dir_as_project(directory)
 
     -- Creates the directory if it does not exist
     if vim.fn.isdirectory(config_dir_path) == 0 then
-        vim.fn.mkdir(config_dir_path, "p", 448) -- '448' is '0700'
+        vim.fn.mkdir(config_dir_path, "p", "0o777")
     end
 
     -- Creates the local spell_adds directory if it does not exist
     local spell_adds_dir = config_dir_path .. "/spell_adds"
     if vim.fn.isdirectory(spell_adds_dir) == 0 then
-        vim.fn.mkdir(spell_adds_dir, "p", 448) -- '448' is '0700'
+        vim.fn.mkdir(spell_adds_dir, "p", "0o777")
     end
 
     -- Does not create the configuration file if it already exists
@@ -109,6 +109,11 @@ function M.read_project_file()
     ---Project configuration file
     local project_file_content = vim.secure.read(Config.done.project_config_file_abs)
     if not project_file_content then
+        return
+    end
+
+    -- If it is a directory
+    if project_file_content == true then
         return
     end
 
