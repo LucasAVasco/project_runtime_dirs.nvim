@@ -14,8 +14,8 @@ local ApiRtd = require("project_runtime_dirs.api.rtd")
 ---@field get_project_configuration_directory fun(): string?
 ---@field read_project_file fun(): ProjectRtdTypesProjectFile?
 ---@field write_project_file fun(project_file_json: ProjectRtdTypesProjectFile)
----@field add_rtd fun(name: string)
----@field remove_rtd fun(name: string)
+---@field add_rtd fun(names: string[])
+---@field remove_rtd fun(names: string[])
 ---@field set_dir_as_project fun(directory: string)
 ---@field set_current_project_dir fun(directory: string)
 ---@field get_all_rtd_names fun(): string[]
