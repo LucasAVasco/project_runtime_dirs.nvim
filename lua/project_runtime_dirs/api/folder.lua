@@ -5,7 +5,7 @@ local Text = require("project_runtime_dirs.text")
 ---@field DirManager DirManager
 local M = {}
 
--- #region Directory manager class
+--  Directory manager class {{{
 
 ---Class to manage a directory
 ---@class (exact) DirManager
@@ -159,6 +159,6 @@ function M.DirManager:new(path)
     return new
 end
 
--- #endregion
+--  }}}
 
 return M

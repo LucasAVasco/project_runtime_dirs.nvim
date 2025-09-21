@@ -38,7 +38,7 @@ function M.path_exists(path)
     return false
 end
 
--- #region Runtime source class
+-- Runtime source class {{{
 
 ---Class to manage a runtime source
 ---@class (exact) RuntimeSource: DirManager
@@ -119,7 +119,7 @@ function M.RuntimeSource:new(path)
     return new
 end
 
--- #endregion
+-- }}}
 
 ---Interactively select a runtime source
 ---Calls the callback function after the user select the runtime source

@@ -12,7 +12,7 @@ local ApiFolder = require("project_runtime_dirs.api.folder")
 ---@field RuntimeDir RuntimeDir
 local M = {}
 
--- #region Runtime directory class
+-- Runtime directory class {{{
 
 ---@class (exact) RuntimeDirLinkedRtd
 ---@field names string[] names of the inherited named runtime directories
@@ -116,6 +116,6 @@ function M.RuntimeDir:new(name)
     return new
 end
 
--- #endregion
+-- }}}
 
 return M

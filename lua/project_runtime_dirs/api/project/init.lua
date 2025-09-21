@@ -22,7 +22,7 @@ local ApiRtd = require("project_runtime_dirs.api.rtd")
 ---@field get_all_confiigured_rtd_names fun(): string[]
 local M = {}
 
--- #region Project root directory
+-- Project root directory {{{
 
 ---Get the path to the current project directory
 ---@return string?
@@ -202,7 +202,7 @@ function M.remove_rtd(names)
     M.write_project_file(rtd_to_maintain)
 end
 
--- #endregion
+-- }}}
 
 ---Return the names of all runtime directories. Also return the names of the runtime directories that are not loaded.
 ---This function only updates the runtime directories names once in a Neovim session. If you manually created some runtime directory, you

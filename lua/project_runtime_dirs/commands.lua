@@ -38,7 +38,7 @@ end, {
     end,
 })
 
--- #region Commands to edit runtime directory files
+-- Commands to edit runtime directory files {{{
 
 ---Get the completion list (used in `complete` functions) with the files and folders inside the provided runtime directory
 ---@param rtd RuntimeDir Search files and directories in this runtime directory
@@ -115,9 +115,9 @@ end, {
     end,
 })
 
--- #endregion
+-- }}}
 
--- #region `ProjectRtdShowContext` command
+-- `ProjectRtdShowContext` command {{{
 
 ---Convert a list of strings as a unique string (to show the data)
 ---@param list string[]
@@ -288,4 +288,4 @@ end, {
     desc = "Show the plugin context: merged configuration, current project directory, runtime directory data",
 })
 
--- #endregion
+-- }}}
