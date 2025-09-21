@@ -1,6 +1,4 @@
 local Config = require("project_runtime_dirs.config")
-local ApiRtd = require("project_runtime_dirs.api.rtd")
-local Cache = require("project_runtime_dirs.cache")
 local Text = require("project_runtime_dirs.text")
 local ApiProject = require("project_runtime_dirs.api.project")
 
