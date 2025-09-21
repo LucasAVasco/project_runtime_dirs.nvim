@@ -198,7 +198,7 @@ local function get_shown_interface()
         vim.inspect(Config.merged),
         Config.done.current_project_directory,
         list2string(ApiProject.get_all_rtd_names()),
-        list2string(ApiProject.get_all_confiigured_rtd_names()),
+        list2string(ApiProject.get_all_configured_rtd_names()),
         #ApiProjectEnabledRtd.get_all(),
         enabled_rtd_content
     )

@@ -19,7 +19,7 @@ local ApiRtd = require("project_runtime_dirs.api.rtd")
 ---@field set_dir_as_project fun(directory: string)
 ---@field set_current_project_dir fun(directory: string)
 ---@field get_all_rtd_names fun(): string[]
----@field get_all_confiigured_rtd_names fun(): string[]
+---@field get_all_configured_rtd_names fun(): string[]
 local M = {}
 
 -- Project root directory {{{
@@ -242,7 +242,7 @@ end
 ---runtime directory, you need to restart Neovim in order to apply the changes.
 ---@return string[]
 ---@nodiscard
-function M.get_all_confiigured_rtd_names()
+function M.get_all_configured_rtd_names()
     return Cache.project.configured_rtd_names or {}
 end
 
