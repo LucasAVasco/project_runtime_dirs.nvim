@@ -2,6 +2,7 @@ local Config = require("project_runtime_dirs.config")
 local Text = require("project_runtime_dirs.text")
 local Cache = require("project_runtime_dirs.cache")
 local Check = require("project_runtime_dirs.check")
+local config_file = require("project_runtime_dirs.config_file")
 local notification = require("project_runtime_dirs.notification")
 
 -- API
@@ -15,18 +16,87 @@ local M = {}
 
 -- Runtime directory class {{{
 
----@class (exact) RuntimeDirLinkedRtd
----@field names string[] names of the inherited named runtime directories
----@field rtds RuntimeDir[] inherited named runtime directories
-
 ---Class to manage a runtime directory
 ---@class (exact) RuntimeDir: DirManager
 ---@field name string Name of the runtime directory
----@field deps RuntimeDirLinkedRtd Runtime directories that the current one requires
+---@field deps RuntimeDir[] Runtime directories that the current one requires
+---@field config ProjectRtdTypesProjectFile Configuration file of the runtime directory
 ---@field __index? RuntimeDir
 M.RuntimeDir = {}
 M.RuntimeDir.__index = M.RuntimeDir
 setmetatable(M.RuntimeDir, ApiFolder.DirManager)
+
+---Read the configuration file of the runtime directory.
+---@return string?
+function M.RuntimeDir:_read_config_file()
+    if not self:filereadable("config.json") then
+        self.config = config_file.new()
+        return
+    end
+
+    -- File with the names of the inherited runtime directories
+    local path = self:get_abs_path("config.json")
+    local content, err = config_file.parse(path)
+
+    if err then
+        return ("Error parsing config file: %s"):format(err)
+    end
+
+    if not content then
+        return "Config file is empty"
+    end
+
+    -- Updates the configurations
+    self.config = content
+
+    -- Adds the sub runtime directories
+    for _, rtd_name in pairs(self.config.runtime_dirs) do
+        table.insert(self.deps, M.RuntimeDir:new(rtd_name))
+    end
+end
+
+---Save the configuration file of the runtime directory
+function M.RuntimeDir:save_config_file()
+    local path = self:get_abs_path("config.json")
+    config_file.save(path, self.config)
+end
+
+---Add dependencies to the runtime directory
+---@param rtds string[] List of runtime directories
+function M.RuntimeDir:add_dependencies(rtds)
+    for _, rtd in ipairs(rtds) do
+        -- Does not add if it is already added
+        for _, rtd_name in pairs(self.config.runtime_dirs) do
+            if rtd_name == rtd then
+                break
+            end
+        end
+
+        -- Adding
+        table.insert(self.deps, M.RuntimeDir:new(rtd))
+        table.insert(self.config.runtime_dirs, rtd)
+    end
+
+    -- Saving
+    self:save_config_file()
+end
+
+---Add dependencies to the runtime directory
+---@param rtds string[] List of runtime directories
+function M.RuntimeDir:remove_dependencies(rtds)
+    for _, rtd_name in pairs(rtds) do
+        for i = #self.deps, 1, -1 do
+            if self.deps[i].name == rtd_name then
+                table.remove(self.deps, i)
+                table.remove(self.config.runtime_dirs, i)
+                break
+            end
+        end
+    end
+
+    -- Saving
+    self:save_config_file()
+end
 
 ---Create a runtime directory object.
 ---You need to provide the name of the runtime directory. This function will search it in the configured source directories and
@@ -81,10 +151,8 @@ function M.RuntimeDir:new(name)
     local new = {
         path = path,
         name = name,
-        deps = {
-            rtds = {},
-            names = {},
-        },
+        deps = {},
+        config = {},
     }
 
     setmetatable(new, M.RuntimeDir)
@@ -93,25 +161,16 @@ function M.RuntimeDir:new(name)
     table.insert(Cache.rtd, new)
     table.insert(Cache.project.enabled_rtd_names, new.name)
 
+    -- Reads the configuration file
+    local err = new:_read_config_file()
+    if err then
+        notification.show(("Error reading configuration file: %s"):format(err), vim.log.levels.ERROR)
+    end
+
     -- Enables the runtime directory
     vim.opt.rtp:append(new.path)
     if new:filereadable("init.lua") then
         dofile(new:get_abs_path("init.lua"))
-    end
-
-    -- File with the names of the inherited runtime directories
-    local sub_rtds_file = new:open("runtime-dir-deps")
-    if sub_rtds_file then
-        for line in sub_rtds_file:lines() do
-            ---@cast line string
-            line = Text.remove_newlines(line)
-
-            if line ~= "" then
-                table.insert(new.deps.names, line)
-                table.insert(new.deps.rtds, M.RuntimeDir:new(line))
-            end
-        end
-        sub_rtds_file:close()
     end
 
     return new

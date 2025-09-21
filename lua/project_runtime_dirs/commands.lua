@@ -1,5 +1,7 @@
 local Config = require("project_runtime_dirs.config")
 local Text = require("project_runtime_dirs.text")
+local rtd = require("project_runtime_dirs.api.rtd")
+local notification = require("project_runtime_dirs.notification")
 
 -- API
 
@@ -22,6 +24,56 @@ vim.api.nvim_create_user_command("ProjectRtdAddRtd", function(arguments)
     ApiProject.add_rtd(arguments.fargs)
 end, {
     desc = "Add some runtime directories to the current project",
+    nargs = "+",
+    complete = function()
+        return ApiProject.get_all_rtd_names()
+    end,
+})
+
+vim.api.nvim_create_user_command("ProjectRtdAddRtdDependencies", function(arguments)
+    if #arguments.fargs < 2 then
+        notification.show("Must have at least 2 arguments", vim.log.levels.ERROR)
+        return
+    end
+
+    -- Runtime directory to add dependencies
+    local rtd = rtd.RuntimeDir:new(arguments.fargs[1])
+
+    if rtd == nil then
+        notification.show(("Error getting runtime directory: %s"):format(arguments.fargs[1]), vim.log.levels.ERROR)
+        return
+    end
+
+    -- Add dependencies
+    table.remove(arguments.fargs, 1)
+    rtd:add_dependencies(arguments.fargs)
+end, {
+    desc = "Add some runtime directories as dependencies to a runtime directory",
+    nargs = "+",
+    complete = function()
+        return ApiProject.get_all_rtd_names()
+    end,
+})
+
+vim.api.nvim_create_user_command("ProjectRtdRemoveRtdDependencies", function(arguments)
+    if #arguments.fargs < 2 then
+        notification.show("Must have at least 2 arguments", vim.log.levels.ERROR)
+        return
+    end
+
+    -- Runtime directory to add dependencies
+    local rtd = rtd.RuntimeDir:new(arguments.fargs[1])
+
+    if rtd == nil then
+        notification.show(("Error getting runtime directory: %s"):format(arguments.fargs[1]), vim.log.levels.ERROR)
+        return
+    end
+
+    -- Remove dependencies
+    table.remove(arguments.fargs, 1)
+    rtd:remove_dependencies(arguments.fargs)
+end, {
+    desc = "Add some runtime directories as dependencies to a runtime directory",
     nargs = "+",
     complete = function()
         return ApiProject.get_all_rtd_names()
@@ -144,7 +196,7 @@ local rtd_data_template = [[
 ---@param runtime_dir RuntimeDir
 ---@return string
 local function get_rtd_data(runtime_dir)
-    return rtd_data_template:format(runtime_dir.name, runtime_dir.path, list2string(runtime_dir.deps.names))
+    return rtd_data_template:format(runtime_dir.name, runtime_dir.path, list2string(runtime_dir.config.runtime_dirs))
 end
 
 -- --[[markdown]]
