@@ -1,4 +1,5 @@
 local Text = require("project_runtime_dirs.text")
+local notification = require("project_runtime_dirs.notification")
 
 ---API to manage folders of the `project_runtime_dirs.nvim` plugin
 ---@class (exact) ProjectRtdApiFolder
@@ -120,7 +121,7 @@ function M.DirManager:list_files(sub_path, ignore_errors)
 
     if fs_handler == nil then
         if not ignore_errors then
-            vim.notify(
+            notification.show(
                 ('Can not access files inside: "%s". Error name: %s'):format(abs_path, error_name),
                 vim.log.levels.ERROR
             )

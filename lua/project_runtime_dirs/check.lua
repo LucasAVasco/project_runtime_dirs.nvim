@@ -1,5 +1,7 @@
 ---@module "project_runtime_dirs.types.rtd"
 
+local notification = require("project_runtime_dirs.notification")
+
 ---Module to check the validity of the data used in the `project_runtime_dris.nvim` plugin
 ---@class (exact) ProjectRtdCheck
 ---@field get_rtd_name_max_size fun(): integer
@@ -25,7 +27,7 @@ function M.rtd_name_is_valid(name, notify)
 
     if not is_valid then
         if notify then
-            vim.notify(('Error parsing project name: "%s". Name is empty'):format(name), vim.log.levels.ERROR)
+            notification.show(('Error parsing project name: "%s". Name is empty'):format(name), vim.log.levels.ERROR)
         end
 
         return false
@@ -36,7 +38,7 @@ function M.rtd_name_is_valid(name, notify)
 
     if not is_valid then
         if notify then
-            vim.notify(
+            notification.show(
                 ('Error parsing project name: "%s". Name is too long. Maximum of %d characters'):format(
                     name,
                     rtd_name_max_size
@@ -53,7 +55,7 @@ function M.rtd_name_is_valid(name, notify)
 
     if not is_valid then
         if notify then
-            vim.notify(
+            notification.show(
                 ('Error parsing runtime directory name: "%s". Only letters, numbers and "_" are allowed'):format(name),
                 vim.log.levels.ERROR
             )
@@ -71,7 +73,7 @@ end
 ---@param notify boolean shows the notification.
 local function notify_error_parsing_project_file(message, notify)
     if notify then
-        vim.notify("Error parsiong configuration file: '" .. message .. "'")
+        notification.show("Error parsiong configuration file: '" .. message .. "'")
     end
 end
 

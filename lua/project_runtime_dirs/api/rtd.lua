@@ -2,6 +2,7 @@ local Config = require("project_runtime_dirs.config")
 local Text = require("project_runtime_dirs.text")
 local Cache = require("project_runtime_dirs.cache")
 local Check = require("project_runtime_dirs.check")
+local notification = require("project_runtime_dirs.notification")
 
 -- API
 
@@ -51,7 +52,7 @@ function M.RuntimeDir:new(name)
 
     -- Max number of runtime directories
     if Cache.rtd_is_full() then
-        vim.notify(
+        notification.show(
             ("Max number of runtime directories. Cache is full!. Max: %d"):format(Cache.rtd_max),
             vim.log.levels.ERROR
         )
